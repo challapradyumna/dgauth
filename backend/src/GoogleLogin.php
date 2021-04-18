@@ -35,7 +35,12 @@ class GoogleLogin {
         
                 // We got an access token, let's now get the owner details
                 $ownerDetails = $provider->getResourceOwner($token);
-        
+                
+                $DG = new \DGAuth\DGToken();
+                $dgToken = $DG->getUser($ownerDetails->getEmail());
+                echo $DG->generateAccessToken();
+                echo $DG->generateRefreshToken();
+                echo "<br/><br/>";
                 // Use these details to create a new profile
                 printf('Hello %s!', $ownerDetails->getFirstName());
         
