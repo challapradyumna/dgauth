@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dgauth
+  labels:
+    app: dgauth
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: web
+  selector:
+    app: dgauth
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: dgauth
+  name: dgauth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dgauth
+  template:
+    metadata:
+      labels:
+        app: dgauth
+    spec:
+      containers:
+        - name: dgauth
+          image: localhost:32000/dgauth
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8080

@@ -1,0 +1,72 @@
+type User
+  @secret(field: "password")
+  @auth(
+    query: {
+      or: [
+        # only allow site admins to see all users.
+        { rule: "{ $USERROLE: { eq: \"ADMINISTRATOR\"} }" } # we have to escape quotation marks in the query
+        # allow a logged in user to see their own user data.
+        {
+          and: [
+            { rule: "{ $IS_LOGGED_IN: { eq: \"true\" } }" }
+            {
+              rule: "query($USERNAME: String!) { queryUser(filter: { username: { eq: $USERNAME } }) { username } }"
+            }
+          ]
+        }
+        { rule: "{ $IS_LOGGED_IN: { eq: \"true\" } }" }
+
+      ]
+    }
+    # TODO: # add: {  }
+    # TODO: # update: {  }
+    # TODO: # delete: {  }
+  ) {
+  username: String! @id
+  isType: UserType! @search
+  phone: Phone
+  # isContact: Contact
+}
+
+type Phone
+  @auth(
+    query: {
+      or: [
+        # allow site admins to see all phone numbers
+        { rule: "{ $USERROLE: { eq: \"ADMINISTRATOR\"} }" }
+        # allow everyone to see public phone numbers NOTE: this opens up a whole that allows public phone numbers to be seen even if the linked `forContact` is not public.
+        { rule: "query { queryPhone(filter: { isPublic: true }) { id } }" }
+        {
+          and: [
+            { rule: "{ $IS_LOGGED_IN: { eq: \"true\" } }" }
+            {
+              rule: """query($USERNAME: String!) {
+                 queryPhone {
+                    hasUser( filter: { username: { eq: $USERNAME } } ) {
+                      username 
+                    } 
+                  }
+                }"""
+            }
+          ]
+        }
+        # allow users to see phone numbers they have been granted access to individually
+        # { rule: "query($USERNAME: String!) { queryPhone { access { grants { isUser(filter: { username: { eq: $USERNAME } }) { username } } } } }" }
+        # allow users to see phone numbers they have been granted access to through a group
+        # { rule: "query($USERNAME: String!) { queryPhone { access { grants { isGroup { hasGrantedRights(filter: { name: { eq: isAdmin } or: { name: { eq: canViewPhone } } }) { forContact { isUser(filter: { username: { eq: $USERNAME } }) { username } } } } } } } }" }
+      ]
+    }
+  ) {
+  id: ID!
+  number: String!
+  isPublic: Boolean @search
+  hasUser: User @hasInverse(field: phone)
+}
+
+enum UserType {
+  USER
+  ADMIN
+}
+
+
+# Dgraph.Authorization {"JWKUrl":"http://dgauth.default.svc/jwks","VerificationKey":"","Header":"DAuth", "Namespace":"https://dgraph.io/jwt/claims","Algo":"","Audience":["dgraph-io"]}

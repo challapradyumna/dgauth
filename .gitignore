@@ -1,0 +1,3 @@
+/backend/keys/*
+/backend/vendor/*
+/backend/.env
