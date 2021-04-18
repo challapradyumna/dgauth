@@ -37,12 +37,14 @@ class GoogleLogin {
                 $ownerDetails = $provider->getResourceOwner($token);
                 
                 $DG = new \DGAuth\DGToken();
-                $dgToken = $DG->getUser($ownerDetails->getEmail());
-                echo $DG->generateAccessToken();
-                echo $DG->generateRefreshToken();
-                echo "<br/><br/>";
+                $user = $DG->getUser($ownerDetails->getEmail());
+                $tokens = [];
+                $role = $user['data']['getUser']['isType'];
+                $tokens['accessToken'] = $DG->generateAccessToken($ownerDetails->getEmail(),$role);
+                $tokens['refreshToken'] = $DG->generateRefreshToken($ownerDetails->getEmail(),$role);
+                return json_encode($tokens);
                 // Use these details to create a new profile
-                printf('Hello %s!', $ownerDetails->getFirstName());
+                // printf('Hello %s!', $ownerDetails->getFirstName());
         
             } catch (Exception $e) {
         
@@ -50,16 +52,13 @@ class GoogleLogin {
                 exit('Something went wrong: ' . $e->getMessage());
         
             }
-            echo "<br/>";
             // Use this to interact with an API on the users behalf
-            echo $token->getToken();
-            echo "<br/>";
+            // echo $token->getToken();
             // Use this to get a new access token if the old one expires
-            echo $token->getRefreshToken();
-            echo "<br/>";
+            // echo $token->getRefreshToken();
             // Unix timestamp at which the access token expires
-            echo $token->getExpires();
-        }echo "<br/>";
+            // echo $token->getExpires();
+        }
         
     }
 }

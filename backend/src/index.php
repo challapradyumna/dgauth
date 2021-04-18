@@ -26,6 +26,6 @@ if ($path_only == "/jwks") {
         'clientSecret' => $_ENV['GOOGLE_CLIENT_SECRET'],
         'redirectUri'  => $_ENV['GOOGLE_REDIRECT'],
     ]);
-
-    $GL->login($provider);
+    header('Content-Type: application/json');
+    echo $GL->login($provider);
 }

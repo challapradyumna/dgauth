@@ -67,7 +67,19 @@ class DGToken
             }
         }
         GQL;
-        $token = $this->generateToken($username,"ADMINISTRATOR",10);
+        $payload = array(
+            "iss" => "dgauth",
+            "aud" => $_ENV['DGRAPH_AUD'],
+            "sub" => $username,
+            $_ENV['DGRAPH_NAMESPACE'] => [
+                "USERNAME"=> $username,
+                "IS_LOGGED_IN"=>"true"
+            ],
+            "iat" => time(),
+            "nbf" => time(),
+            "exp" => time()+10
+        );
+        $token = $this->generateToken($payload);
         $user = $this->graphqlQuery($query,$token);
 
         if(!isset($user['data']['getUser'])) {    
@@ -77,23 +89,18 @@ class DGToken
     }
 
     public function generateRefreshToken($username,$role) {
-        return $this->generateToken($username,$role,$_ENV['REFRESH_TOKEN_LT']);
+        $payload = array(
+            "iss" => "dgauth",
+            "aud" => $_ENV['DGRAPH_AUD'],
+            "sub" => $username,
+            "iat" => time(),
+            "nbf" => time(),
+            "exp" => time()+(int)$_ENV['REFRESH_TOKEN_LT']
+        );
+        return $this->generateToken($payload);
     }
 
     public function generateAccessToken($username,$role) {
-        return $this->generateToken($username,$role,$_ENV['ACCESS_TOKEN_LT']);
-    }
-    
-    public function generateToken($username,$role,$time)
-    {
-        $files = glob(realpath(__DIR__.'/..')."/keys/*.key");
-        $random_key = array_rand($files);
-        $privateKey = file_get_contents($files[$random_key]);
-        $pubKeyFileName = substr($files[$random_key], 0, -3)."pub";
-        $publicKey = file_get_contents($pubKeyFileName);
-        $publicCertFilename = $pubKeyFileName = substr($files[$random_key], 0, -3)."crt";
-        $publicCert = file_get_contents($publicCertFilename);
-
         $payload = array(
             "iss" => "dgauth",
             "aud" => $_ENV['DGRAPH_AUD'],
@@ -105,8 +112,20 @@ class DGToken
             ],
             "iat" => time(),
             "nbf" => time(),
-            "exp" => time()+(int)$time
+            "exp" => time()+(int)$_ENV['ACCESS_TOKEN_LT']
         );
+        return $this->generateToken($payload);
+    }
+    
+    public function generateToken($payload)
+    {
+        $files = glob(realpath(__DIR__.'/..')."/keys/*.key");
+        $random_key = array_rand($files);
+        $privateKey = file_get_contents($files[$random_key]);
+        $pubKeyFileName = substr($files[$random_key], 0, -3)."pub";
+        $publicKey = file_get_contents($pubKeyFileName);
+        $publicCertFilename = $pubKeyFileName = substr($files[$random_key], 0, -3)."crt";
+        $publicCert = file_get_contents($publicCertFilename);
         $x509 = new X509();
         $x509->loadX509($publicCert);
         $kid = $this->base64url_encode($x509->getExtension("id-ce-authorityKeyIdentifier")['keyIdentifier']);
