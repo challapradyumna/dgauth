@@ -128,7 +128,7 @@ class DGToken
         $pubKeyFileName = substr($files[$random_key], 0, -3)."pub";
         $publicKey = file_get_contents($pubKeyFileName);
         $publicCert = openssl_pkey_get_public($publicKey);
-        $publicCertData = openssl_pkey_get_details($publicKey);
+        $publicCertData = openssl_pkey_get_details($publicCert);
         $kid = $this->base64url_encode(md5($publicCertData["rsa"]["n"]));
         $jwt = JWT::encode($payload, $privateKey, 'RS256', $kid);
         return $jwt;

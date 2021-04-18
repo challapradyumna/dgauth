@@ -40,9 +40,12 @@ class GoogleLogin {
                 $user = $DG->getUser($ownerDetails->getEmail());
                 $tokens = [];
                 $role = $user['data']['getUser']['isType'];
-                $tokens['accessToken'] = $DG->generateAccessToken($ownerDetails->getEmail(),$role);
-                $tokens['refreshToken'] = $DG->generateRefreshToken($ownerDetails->getEmail(),$role);
-                return json_encode($tokens);
+                if (isset($user['data']['getUser'])) {
+                    $tokens['accessToken'] = $DG->generateAccessToken($ownerDetails->getEmail(), $role);
+                    $tokens['refreshToken'] = $DG->generateRefreshToken($ownerDetails->getEmail(), $role);
+                    return json_encode($tokens);
+                }
+                return \json_encode(['error'=>"User not found"]);
                 // Use these details to create a new profile
                 // printf('Hello %s!', $ownerDetails->getFirstName());
         
