@@ -16,9 +16,8 @@ $path_only = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 if ($path_only == "/jwks") {
     header('Content-Type: application/json');
     echo $DGT->jwks();
-} elseif ($path_only == "/genToken") {
-    echo $DGT->generateToken();
-} elseif ($path_only == '/login' || isset($_GET['state'])) {
+} 
+elseif ($path_only == '/login' || isset($_GET['state'])) {
     $GL = new DGAuth\GoogleLogin();
 
     $provider = new Google([

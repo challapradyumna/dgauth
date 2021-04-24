@@ -84,7 +84,7 @@ class DGToken
         $user = $this->graphqlQuery($query, $token);
 
         if (!isset($user['data']['getUser'])) {
-            $this->createUser($username, "ADMIN");
+            $user = $this->createUser($username, "ADMIN");
         }
         return $user;
     }

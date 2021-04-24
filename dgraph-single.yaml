@@ -54,7 +54,7 @@ spec:
       #   command:
       #     - dgraph-ratel
       - name: zero
-        image: dgraph/dgraph:v20.11.3
+        image: dgraph/dgraph:v21.03.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5080
@@ -71,7 +71,7 @@ spec:
             set -ex
             dgraph zero --my=$(hostname -f):5080
       - name: alpha
-        image: dgraph/dgraph:v20.11.3
+        image: dgraph/dgraph:v21.03.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
