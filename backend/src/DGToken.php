@@ -42,11 +42,11 @@ class DGToken
 
     public function createUser($username, $type)
     {
+        $dateTime = date(DATE_RFC3339);
         $query = <<<GQL
         mutation (){
-            addUser(input: { username: "$username" , isType : $type, password: "password123" }) { 
+            addUser(input: { username: "$username" , isType : $type, password: "password123", createdAt:"$dateTime",updatedAt:"$dateTime" }) { 
                 user {
-                    id
                     username
                 }
             }
@@ -73,8 +73,8 @@ class DGToken
             "aud" => $_ENV['DGRAPH_AUD'],
             "sub" => $username,
             $_ENV['DGRAPH_NAMESPACE'] => [
-                "USERNAME"=> $username,
-                "IS_LOGGED_IN"=>"true"
+                "username"=> $username,
+                "isAuthenticated"=>"true"
             ],
             "iat" => time(),
             "nbf" => time(),
@@ -84,7 +84,8 @@ class DGToken
         $user = $this->graphqlQuery($query, $token);
 
         if (!isset($user['data']['getUser'])) {
-            $user = $this->createUser($username, "ADMIN");
+            $user = $this->createUser($username, "USER");
+            $user = $this->getUser($username);
         }
         return $user;
     }
@@ -109,9 +110,9 @@ class DGToken
             "aud" => $_ENV['DGRAPH_AUD'],
             "sub" => $username,
             $_ENV['DGRAPH_NAMESPACE'] => [
-                "USERNAME"=> $username,
-                "IS_LOGGED_IN"=>"true",
-                "USERROLE"=>$role
+                "username"=> $username,
+                "isAuthenticated"=>"true",
+                "role"=>$role
             ],
             "iat" => time(),
             "nbf" => time(),

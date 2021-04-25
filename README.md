@@ -35,3 +35,7 @@ There are 2 endpoints available:
 /jwks - Returns a standard json formatted jwks which are stored in backend/keys
 
 /login - Takes you through OAuth authentication of google and generate a refresh and access token with one of the self signed cert in keys directory.
+
+## schema.graphql
+
+Read Schema.md for more details on the schema. 

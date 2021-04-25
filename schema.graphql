@@ -1,78 +1,109 @@
-type User
-  @secret(field: "password")
-  @auth(
+# Any type implementing Private interface can only queried and updated by self or admin
+interface Private @auth(
     query: {
-      or: [
-        # only allow site admins to see all users.
-        { rule: "{ $USERROLE: { eq: \"ADMINISTRATOR\"} }" } # we have to escape quotation marks in the query
-        # allow a logged in user to see their own user data.
-        {
-          rule: "query($USERNAME: String!) { queryUser(filter: { username: { eq: $USERNAME } }) { username } }"
-        }
+        or: [
+        { rule: "{ $role: { eq: \"ADMIN\"} }" }
+        { rule: "query($username: String!) { queryPrivate { belongsTo(filter: { username: { eq: $username } }) { username } } }" }
       ]
     },
-    # TODO: # add: {  } # anyone with a valid token can add user
+    add: { rule:  "{$isAuthenticated: { eq: \"true\" } }" },
     update: {
       or: [
-        { rule: "{ $USERROLE: { eq: \"ADMINISTRATOR\"} }" }
-        {
-          and: [
-            { rule: "{ $IS_LOGGED_IN: { eq: \"true\" } }" }
-            {
-              rule: "query($USERNAME: String!) { queryUser(filter: { username: { eq: $USERNAME } }) { username } }"
-            }
-          ]
-        }
+        { rule: "{ $role: { eq: \"ADMIN\"} }" }
+        { rule: "query($username: String!)  { queryPrivate { belongsTo(filter: { username: { eq: $username } }) { username } } }" }
       ]
     },
     delete: {
       or: [
-        { rule: "{ $USERROLE: { eq: \"ADMINISTRATOR\"} }" }
-        {
-          and: [
-            { rule: "{ $IS_LOGGED_IN: { eq: \"true\" } }" }
-            {
-              rule: "query($USERNAME: String!) { queryUser(filter: { username: { eq: $USERNAME } }) { username } }"
-            }
-          ]
-        }
+        { rule: "{ $role: { eq: \"ADMIN\"} }" }
+        { rule: "query($username: String!)  { queryPrivate { belongsTo(filter: { username: { eq: $username } }) { username } } }" }
       ]
     }
   ) {
-  username: String! @id
-  isType: UserType! @search
-  phone: Phone
-  # isContact: Contact
+    id: ID!
+    belongsTo: User!
+    createdAt: DateTime! 
+    updatedAt: DateTime! 
 }
 
-type Phone
+interface Protected @auth(
+  query: { rule:  "{$isAuthenticated: { eq: \"true\" } }" },
+  add: { rule:  "{$isAuthenticated: { eq: \"true\" } }" },
+  update: {
+    or: [
+      { rule: "{ $role: { eq: \"ADMIN\"} }" }
+      { rule: "query($username: String!)  { queryProtected { createdBy(filter: { username: { eq: $username } }) { username } } }" }
+    ]
+  },
+  delete: {
+    or: [
+      { rule: "{ $role: { eq: \"ADMIN\"} }" }
+      { rule: "query($username: String!)  { queryProtected { createdBy(filter: { username: { eq: $username } }) { username } } }" }
+    ]
+  }
+) {
+  id: ID!
+  createdBy: User!
+  createdAt: DateTime! 
+  updatedAt: DateTime!
+}
+
+interface Public {
+  id: ID!
+  createdAt: DateTime!
+  updatedAT: DateTime!
+}
+
+type User implements Public
+  @secret(field: "password")
   @auth(
-    query: {
+    update: {
       or: [
-        # allow site admins to see all phone numbers
-        { rule: "{ $USERROLE: { eq: \"ADMINISTRATOR\"} }" }
-        {
-          and: [
-            { rule: "{ $IS_LOGGED_IN: { eq: \"true\" } }" }
-            {
-              rule: """
-              query($USERNAME: String!) {
-               queryPhone {
-                  hasUser( filter: { username: { eq: $USERNAME } } ) {
-                    username
-                  }
-                }
-              }
-              """
-            }
-          ]
-        }
+        { rule: "{ $role: { eq: \"ADMIN\"} }" }
+        { rule: "query($username: String!) { queryUser(filter: { username: { eq: $username } }) { username } }" }
+      ]
+    },
+    delete: {
+      or: [
+        { rule: "{ $role: { eq: \"ADMIN\"} }" }
+        { rule: "query($username: String!) { queryUser(filter: { username: { eq: $username } }) { username } }" }
       ]
     }
-  ) {
+  )
+{
+  id: ID!
+  username: String! @id
+  isType: UserType! @search
+  phone: Phone @hasInverse(field: belongsTo)
+  teams: [Team] @hasInverse(field: createdBy)
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Phone implements Private
+{
   id: ID!
   number: String!
-  hasUser: User @hasInverse(field: phone)
+  belongsTo: User! 
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Team implements Protected {
+  id: ID!
+  name: String!
+  createdBy: User!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Post implements Public {
+  id: ID!
+  title: String!
+  content: String!
+  createdBy: User!
+  createdAt: DateTime!
+  updatedAT: DateTime!
 }
 
 enum UserType {

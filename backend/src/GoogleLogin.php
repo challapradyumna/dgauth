@@ -12,7 +12,7 @@ class GoogleLogin {
         } elseif (empty($_GET['code'])) {
         
             // If we don't have an authorization code then get one
-            $authUrl = $provider->getAuthorizationUrl(['prompt' => 'consent','access_type'=>'offline']);
+            $authUrl = $provider->getAuthorizationUrl();
             $_SESSION['oauth2state'] = $provider->getState();
             header('Location: ' . $authUrl);
             exit;
@@ -37,12 +37,14 @@ class GoogleLogin {
                 $ownerDetails = $provider->getResourceOwner($token);
                 
                 $DG = new \DGAuth\DGToken();
-                $user = $DG->getUser($ownerDetails->getEmail());
+                
+                $email = $ownerDetails->getEmail();
+                $user = $DG->getUser($email);
                 $tokens = [];
                 $role = $user['data']['getUser']['isType'];
                 if (isset($user['data']['getUser'])) {
-                    $tokens['accessToken'] = $DG->generateAccessToken($ownerDetails->getEmail(), $role);
-                    $tokens['refreshToken'] = $DG->generateRefreshToken($ownerDetails->getEmail(), $role);
+                    $tokens['accessToken'] = $DG->generateAccessToken($email, $role);
+                    $tokens['refreshToken'] = $DG->generateRefreshToken($email, $role);
                     return json_encode($tokens);
                 }
                 return \json_encode(['error'=>"User not found"]);
