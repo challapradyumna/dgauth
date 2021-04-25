@@ -39,3 +39,7 @@ There are 2 endpoints available:
 ## schema.graphql
 
 Read Schema.md for more details on the schema. 
+
+## GraphQL Playground
+
+once you run the server /playground.html is a fully functioning graphql playground that can also introspect the schema and help in easier development when pointed to the Dgraph graphql endpoint

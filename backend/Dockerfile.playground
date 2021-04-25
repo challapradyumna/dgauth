@@ -1,0 +1,5 @@
+FROM caddy:alpine
+EXPOSE 8000
+COPY ./src/playground.html /var/www/html/index.html
+WORKDIR /var/www/html
+CMD ["caddy", "file-server", "-listen", ":8000"]

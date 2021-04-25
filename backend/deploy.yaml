@@ -10,6 +10,9 @@ spec:
   - port: 80
     targetPort: 8080
     name: web
+  - port: 8000
+    targetPort: 8000
+    name: playground
   selector:
     app: dgauth
 
@@ -37,3 +40,10 @@ spec:
           imagePullPolicy: Always
           ports:
           - containerPort: 8080
+            name: web
+        - name: dgplayground
+          image: localhost:32000/dgauth:playground
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8000
+            name: playground
