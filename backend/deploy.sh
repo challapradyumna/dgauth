@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 docker build . -t localhost:32000/dgauth
 docker push localhost:32000/dgauth
 docker build . -f Dockerfile.playground -t localhost:32000/dgauth:playground

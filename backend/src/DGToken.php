@@ -4,6 +4,7 @@ namespace DGAuth;
 
 use GuzzleHttp\Client;
 use \Firebase\JWT\JWT;
+use \Firebase\JWT\JWK;
 use phpseclib3\File\X509;
 use phpseclib3\Crypt\RSA;
 use phpseclib3\Crypt\PublicKeyLoader;
@@ -119,6 +120,24 @@ class DGToken
             "exp" => time()+(int)$_ENV['ACCESS_TOKEN_LT']
         );
         return $this->generateToken($payload);
+    }
+
+
+    public function generateTokenFromRefreshToken($refreshToken) {
+        $jwks = $this->jwks();
+        $jwks = json_decode($jwks,true);
+        try {
+            $decodedToken = JWT::decode($refreshToken, JWK::parseKeySet($jwks), ['RS256']);
+            $newAccessToken = $this->generateAccessToken($decodedToken->sub,"USER");
+            \setcookie("accessToken",$newAccessToken,time()+60*60*24*30,"/");
+            echo json_encode(["accessToken"=>$newAccessToken]);
+        } catch(\Exception $e) {
+            $error["error"] = "Could not issue access token";
+            setcookie("refreshToken", "", time() - 3600);
+            setcookie("accessToken", "", time() - 3600);
+            header("Location: ".$_ENV['LOGIN_REDIRECT']);
+        }
+        
     }
     
     public function generateToken($payload)

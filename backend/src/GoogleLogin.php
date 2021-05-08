@@ -43,8 +43,11 @@ class GoogleLogin {
                 $tokens = [];
                 $role = $user['data']['getUser']['isType'];
                 if (isset($user['data']['getUser'])) {
+                    
                     $tokens['accessToken'] = $DG->generateAccessToken($email, $role);
                     $tokens['refreshToken'] = $DG->generateRefreshToken($email, $role);
+                    \setcookie("accessToken",$tokens['accessToken'],time()+60*60*24*30,"/");
+                    \setCookie("refreshToken",$tokens['refreshToken'],time()+60*60*24*90,"/");
                     return json_encode($tokens);
                 }
                 return \json_encode(['error'=>"User not found"]);
